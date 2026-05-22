@@ -2,8 +2,11 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Alert
+  Alert,
+  ScrollView
 } from 'react-native';
+
+import BottomNavigation from '../components/BottomNavigation';
 
 import { signOut } from 'firebase/auth';
 
@@ -33,13 +36,18 @@ export default function HomeScreen({ navigation }) {
 
   };
 
-  return (
+ return (
 
-    <View
-      style={{
-        flex: 1,
-        padding: 20,
-        backgroundColor: '#f2f2f2'
+  <View
+    style={{
+      flex: 1,
+      backgroundColor: '#f2f2f2'
+    }}
+  >
+
+    <ScrollView
+      contentContainerStyle={{
+        padding: 20
       }}
     >
 
@@ -47,7 +55,8 @@ export default function HomeScreen({ navigation }) {
         style={{
           fontSize: 28,
           fontWeight: 'bold',
-          marginBottom: 10
+          marginBottom: 10,
+          textAlign: 'center'
         }}
       >
         Eventos Comunitarios
@@ -56,13 +65,16 @@ export default function HomeScreen({ navigation }) {
       <Text
         style={{
           marginBottom: 25,
-          color: 'gray'
+          color: 'gray',
+          textAlign: 'center'
         }}
       >
         Bienvenido: {auth.currentUser?.email}
       </Text>
 
-      <TouchableOpacity
+      {/* EVENTO 1 */}
+
+      <View
         style={{
           backgroundColor: 'white',
           padding: 20,
@@ -70,17 +82,103 @@ export default function HomeScreen({ navigation }) {
           marginBottom: 15
         }}
       >
+
         <Text
           style={{
             fontSize: 18,
-            fontWeight: 'bold'
+            fontWeight: 'bold',
+            marginBottom: 10
           }}
         >
-          Festival Local
+          Festival del Mango
         </Text>
 
-        <Text>10 Mayo - Parque Central</Text>
-      </TouchableOpacity>
+        <Text>
+          14 de Mayo - 2:00pm
+        </Text>
+
+        <Text
+          style={{
+            marginBottom: 15
+          }}
+        >
+          Parque Central
+        </Text>
+
+        <TouchableOpacity
+          onPress={() =>
+            navigation.navigate('DetailEvent')
+          }
+        >
+
+          <Text
+            style={{
+              color: '#6c63ff',
+              fontWeight: 'bold',
+              textAlign: 'right'
+            }}
+          >
+            Ver detalles
+          </Text>
+
+        </TouchableOpacity>
+
+      </View>
+
+      {/* EVENTO 2 */}
+
+      <View
+        style={{
+          backgroundColor: 'white',
+          padding: 20,
+          borderRadius: 12,
+          marginBottom: 15
+        }}
+      >
+
+        <Text
+          style={{
+            fontSize: 18,
+            fontWeight: 'bold',
+            marginBottom: 10
+          }}
+        >
+          Festival de las Pupusas
+        </Text>
+
+        <Text>
+          18 de Mayo - 5:00pm
+        </Text>
+
+        <Text
+          style={{
+            marginBottom: 15
+          }}
+        >
+          Plaza Municipal
+        </Text>
+
+        <TouchableOpacity
+          onPress={() =>
+            navigation.navigate('DetailEvent')
+          }
+        >
+
+          <Text
+            style={{
+              color: '#6c63ff',
+              fontWeight: 'bold',
+              textAlign: 'right'
+            }}
+          >
+            Ver detalles
+          </Text>
+
+        </TouchableOpacity>
+
+      </View>
+
+      {/* BOTON CREAR */}
 
       <TouchableOpacity
         style={{
@@ -90,8 +188,11 @@ export default function HomeScreen({ navigation }) {
           alignItems: 'center',
           marginBottom: 15
         }}
-        onPress={() => navigation.navigate('CreateEvent')}
+        onPress={() =>
+          navigation.navigate('CreateEvent')
+        }
       >
+
         <Text
           style={{
             color: 'white',
@@ -100,7 +201,10 @@ export default function HomeScreen({ navigation }) {
         >
           Crear Evento
         </Text>
+
       </TouchableOpacity>
+
+      {/* LOGOUT */}
 
       <TouchableOpacity
         style={{
@@ -111,6 +215,7 @@ export default function HomeScreen({ navigation }) {
         }}
         onPress={handleLogout}
       >
+
         <Text
           style={{
             color: 'white',
@@ -119,9 +224,13 @@ export default function HomeScreen({ navigation }) {
         >
           Cerrar Sesión
         </Text>
+
       </TouchableOpacity>
 
-    </View>
-
-  );
+    </ScrollView>
+          <BottomNavigation
+            navigation={navigation}
+            />
+  </View>
+);
 }

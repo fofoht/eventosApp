@@ -89,7 +89,7 @@ export default function LoginScreen({ navigation }) {
           textAlign: 'center'
         }}
       >
-        Community Events
+        Eventos Comunitarios
       </Text>
 
       <TextInput
