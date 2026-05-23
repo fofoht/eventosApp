@@ -1,75 +1,92 @@
 import { useState } from 'react';
-import DateTimePicker from '@react-native-community/datetimepicker'; //esta libreria tiene para hacer calendarios
-
+import DateTimePicker from '@react-native-community/datetimepicker';
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
   ScrollView,
-  Alert
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
+import {
+  collection,
+  addDoc,
+  updateDoc,
+  doc,
+  serverTimestamp,
+} from 'firebase/firestore';
+import { auth, db } from '../firebase/config';
 
-export default function CreateEventScreen() {
+const CATEGORIES = ['General', 'Cultura', 'Deporte', 'Música', 'Educación', 'Comida'];
 
-//constantes para tiempo y fecha
-const [date, setDate] = useState(new Date());
-const [showDatePicker, setShowDatePicker] = useState(false);
-const [time, setTime] = useState(new Date());
-const [showTimePicker, setShowTimePicker] = useState(false);
+export default function CreateEventScreen({ navigation, route }) {
+  const editingEvent = route?.params?.event || null;
 
-const [title, setTitle] = useState('');
-const [description, setDescription] = useState('');
-const [location, setLocation] = useState('');
+  const [title, setTitle] = useState(editingEvent?.title || '');
+  const [description, setDescription] = useState(editingEvent?.description || '');
+  const [location, setLocation] = useState(editingEvent?.location || '');
+  const [category, setCategory] = useState(editingEvent?.category || 'General');
+  const [loading, setLoading] = useState(false);
 
-  const handleCreateEvent = () => {
+  const [date, setDate] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [time, setTime] = useState(new Date());
+  const [showTimePicker, setShowTimePicker] = useState(false);
 
-    if (
-      !title ||
-      !description ||
-      !location ||
-      !date ||
-      !time
-    ) {
-
-      Alert.alert(
-        'Error',
-        'Completa todos los campos'
-      );
-
+  const handleSave = async () => {
+    if (!title || !description || !location) {
+      Alert.alert('Error', 'Completa todos los campos');
       return;
     }
 
-    Alert.alert(
-      'Evento creado',
-      'El evento fue registrado correctamente'
-    );
+    setLoading(true);
+    try {
+      const user = auth.currentUser;
+      const eventData = {
+        title,
+        description,
+        location,
+        category,
+        date: date.toLocaleDateString('es-SV'),
+        time: time.toLocaleTimeString('es-SV', { hour: '2-digit', minute: '2-digit' }),
+      };
 
+      if (editingEvent) {
+        // Editar evento existente
+        await updateDoc(doc(db, 'events', editingEvent.id), eventData);
+        Alert.alert('¡Listo!', 'Evento actualizado correctamente.', [
+          { text: 'OK', onPress: () => navigation.goBack() }
+        ]);
+      } else {
+        // Crear nuevo evento
+        await addDoc(collection(db, 'events'), {
+          ...eventData,
+          creatorId: user.uid,
+          creatorEmail: user.email,
+          createdAt: serverTimestamp(),
+          attendees: [],
+          rating: 0,
+          ratingCount: 0,
+        });
+        Alert.alert('¡Evento creado!', 'El evento fue registrado correctamente.', [
+          { text: 'OK', onPress: () => navigation.goBack() }
+        ]);
+      }
+    } catch (error) {
+      Alert.alert('Error', 'No se pudo guardar el evento.');
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
+    <ScrollView style={{ flex: 1, backgroundColor: '#f2f2f2' }}>
+      <View style={{ padding: 25 }}>
 
-    <ScrollView
-      style={{
-        flex: 1,
-        backgroundColor: '#f2f2f2'
-      }}
-    >
-
-      <View
-        style={{
-          padding: 25
-        }}
-      >
-
-        <Text
-          style={{
-            fontSize: 30,
-            fontWeight: 'bold',
-            marginBottom: 25
-          }}
-        >
-          Crear Evento
+        <Text style={{ fontSize: 30, fontWeight: 'bold', marginBottom: 25 }}>
+          {editingEvent ? 'Editar Evento' : 'Crear Evento'}
         </Text>
 
         <TextInput
@@ -80,7 +97,7 @@ const [location, setLocation] = useState('');
             backgroundColor: 'white',
             padding: 15,
             borderRadius: 10,
-            marginBottom: 15
+            marginBottom: 15,
           }}
         />
 
@@ -96,7 +113,7 @@ const [location, setLocation] = useState('');
             borderRadius: 10,
             marginBottom: 15,
             height: 120,
-            textAlignVertical: 'top'
+            textAlignVertical: 'top',
           }}
         />
 
@@ -108,111 +125,108 @@ const [location, setLocation] = useState('');
             backgroundColor: 'white',
             padding: 15,
             borderRadius: 10,
-            marginBottom: 15
+            marginBottom: 15,
           }}
         />
 
-        {/* Este es para la fecha */}
-
-      <TouchableOpacity
-        onPress={() => setShowDatePicker(true)}
-        style={{
-          backgroundColor: 'white',
-          padding: 15,
-          borderRadius: 10,
-          marginBottom: 15
-        }}
-      >
-
-        <Text>
-          Fecha: 
-          {date.toLocaleDateString()}
-        </Text>
-
-      </TouchableOpacity>
-
-      {showDatePicker && (
-
-        <DateTimePicker
-          value={date}
-          mode="date"
-          display="default"
-
-          onChange={(event, selectedDate) => {
-
-            setShowDatePicker(false);
-
-            if (selectedDate) {
-              setDate(selectedDate);
-            }
-
+        {/* Selector de fecha */}
+        <TouchableOpacity
+          onPress={() => setShowDatePicker(true)}
+          style={{
+            backgroundColor: 'white',
+            padding: 15,
+            borderRadius: 10,
+            marginBottom: 15,
           }}
-        />
+        >
+          <Text>📅 Fecha: {date.toLocaleDateString('es-SV')}</Text>
+        </TouchableOpacity>
 
-      )}
-      {/* Este es para la hora */}
-      <TouchableOpacity
-      onPress={() => setShowTimePicker(true)}
-      style={{
-        backgroundColor: 'white',
-        padding: 15,
-        borderRadius: 10,
-        marginBottom: 15
-      }}
-    >
+        {showDatePicker && (
+          <DateTimePicker
+            value={date}
+            mode="date"
+            display="default"
+            onChange={(event, selectedDate) => {
+              setShowDatePicker(false);
+              if (selectedDate) setDate(selectedDate);
+            }}
+          />
+        )}
 
-      <Text>
-        Hora: 
-        {time.toLocaleTimeString()}
-      </Text>
+        {/* Selector de hora */}
+        <TouchableOpacity
+          onPress={() => setShowTimePicker(true)}
+          style={{
+            backgroundColor: 'white',
+            padding: 15,
+            borderRadius: 10,
+            marginBottom: 15,
+          }}
+        >
+          <Text>🕐 Hora: {time.toLocaleTimeString('es-SV', { hour: '2-digit', minute: '2-digit' })}</Text>
+        </TouchableOpacity>
 
-    </TouchableOpacity>
-    {showTimePicker && (
+        {showTimePicker && (
+          <DateTimePicker
+            value={time}
+            mode="time"
+            display="default"
+            onChange={(event, selectedTime) => {
+              setShowTimePicker(false);
+              if (selectedTime) setTime(selectedTime);
+            }}
+          />
+        )}
 
-      <DateTimePicker
-        value={time}
-        mode="time"
-        display="default"
+        {/* Categoría */}
+        <Text style={{ fontWeight: 'bold', marginBottom: 10 }}>Categoría</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 20 }}>
+          {CATEGORIES.map((cat) => (
+            <TouchableOpacity
+              key={cat}
+              onPress={() => setCategory(cat)}
+              style={{
+                backgroundColor: category === cat ? '#6c63ff' : 'white',
+                paddingHorizontal: 16,
+                paddingVertical: 8,
+                borderRadius: 20,
+                marginRight: 8,
+                borderWidth: 1,
+                borderColor: category === cat ? '#6c63ff' : '#ddd',
+              }}
+            >
+              <Text style={{
+                color: category === cat ? 'white' : 'gray',
+                fontWeight: '600',
+              }}>
+                {cat}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
 
-        onChange={(event, selectedTime) => {
-
-          setShowTimePicker(false);
-
-          if (selectedTime) {
-            setTime(selectedTime);
-          }
-
-        }}
-      />
-
-    )}
-    
+        {/* Botón guardar */}
         <TouchableOpacity
           style={{
             backgroundColor: '#4a90e2',
             padding: 18,
             borderRadius: 10,
-            alignItems: 'center'
+            alignItems: 'center',
+            opacity: loading ? 0.6 : 1,
           }}
-          onPress={handleCreateEvent}
+          onPress={handleSave}
+          disabled={loading}
         >
-
-          <Text
-            style={{
-              color: 'white',
-              fontWeight: 'bold',
-              fontSize: 16
-            }}
-          >
-            Crear Evento
-          </Text>
-
+          {loading
+            ? <ActivityIndicator color="white" />
+            : <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 16 }}>
+                {editingEvent ? 'Guardar Cambios' : 'Crear Evento'}
+              </Text>
+          }
         </TouchableOpacity>
 
       </View>
-
     </ScrollView>
-
   );
-
 }
