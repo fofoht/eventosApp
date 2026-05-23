@@ -12,12 +12,7 @@ import { auth } from '../firebase/config';
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
 import HomeScreen from '../screens/HomeScreen';
-import CreateEventScreen from '../screens/CreateEventScreen'; 
-import HistoryScreen from '../screens/HistoryScreen';
-import DetailEvent from '../screens/DetailEvent';
-
-import BottomNavigation from '../components/BottomNavigation'; //para el navbar
-
+import CreateEventScreen from '../screens/CreateEventScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -65,16 +60,6 @@ export default function AppNavigator() {
             <Stack.Screen
               name="Home"
               component={HomeScreen}
-            />
-
-            <Stack.Screen
-              name="History"
-              component={HistoryScreen}
-            />
-
-            <Stack.Screen
-              name="DetailEvent"
-              component={DetailEvent}
             />
 
             <Stack.Screen
