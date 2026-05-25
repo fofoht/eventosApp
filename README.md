@@ -83,3 +83,19 @@ https://creativecommons.org/licenses/by-nc/4.0/
 Manual de usuario y documentación:
 https://udbedu-my.sharepoint.com/:w:/r/personal/bl233081_alumno_udb_edu_sv/_layouts/15/Doc.aspx?sourcedoc=%7B7dc5a59a-9a62-4bcf-8866-2d07d1472ef7%7D&action=default
 
+## Mockups UX/UI
+
+Diseños realizados en Figma para mostrar la propuesta visual de la aplicación.
+
+### Login y Registro
+![Login y Registro](./screenshots/Login-Registro.jpg)
+
+### Home Organizador / Crear Evento / Detalles Evento Organizador
+![Organizador](./screenshots/HomeOrganizador-CrearEvento-DetallesEventoOrg.jpg)
+
+### Home Usuario / Detalles Evento / Historial Usuario
+![Usuario](./screenshots/HomeUser-DetallesEventoUser-HistorialUsuario.jpg)
+
+### Editar Evento / Estadísticas / Historial Organizador
+![Estadísticas](./screenshots/EditarEvento-Estadisticas-HistorialOrganizador.jpg)
+
