@@ -42,17 +42,17 @@ export default function LoginScreen({ navigation }) {
 
   const user = userCredential.user;
 
-  if (!user.emailVerified) {
+//  if (!user.emailVerified) {
+//
+//    await signOut(auth);
 
-    await signOut(auth);
+//    Alert.alert(
+//      'Verifica tu correo',
+//      'Debes verificar tu email antes de iniciar sesión'
+//    );
 
-    Alert.alert(
-      'Verifica tu correo',
-      'Debes verificar tu email antes de iniciar sesión'
-    );
-
-    return;
-  }
+//    return;
+//  }
 
   Alert.alert(
     'Bienvenido',

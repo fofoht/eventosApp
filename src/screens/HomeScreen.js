@@ -1,127 +1,243 @@
+import { useEffect, useState } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
-  Alert
+  Alert,
+  ScrollView,
+  ActivityIndicator,
+  TextInput,
 } from 'react-native';
 
 import { signOut } from 'firebase/auth';
+import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
 
-import { auth } from '../firebase/config';
+import { auth, db } from '../firebase/config';
+import BottomNavigation from '../components/BottomNavigation';
 
 export default function HomeScreen({ navigation }) {
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+
+  useEffect(() => {
+    const q = query(
+      collection(db, 'events'),
+      orderBy('createdAt', 'desc')
+    );
+
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const data = snapshot.docs.map((d) => ({
+          id: d.id,
+          ...d.data()
+        }));
+
+        setEvents(data);
+        setLoading(false);
+      },
+      (error) => {
+        console.error(error);
+        setLoading(false);
+      }
+    );
+
+    return unsubscribe;
+  }, []);
 
   const handleLogout = async () => {
-
     try {
-
       await signOut(auth);
-
-      Alert.alert(
-        'Sesión cerrada',
-        'Has cerrado sesión correctamente'
-      );
-
-    } catch (error) {
-
+    } catch {
       Alert.alert(
         'Error',
         'No se pudo cerrar sesión'
       );
-
     }
-
   };
 
-  return (
+  const filtered = events.filter(
+    (e) =>
+      e.title?.toLowerCase().includes(
+        search.toLowerCase()
+      ) ||
+      e.location?.toLowerCase().includes(
+        search.toLowerCase()
+      )
+  );
 
+  const currentUser = auth.currentUser;
+
+  return (
     <View
       style={{
-        flex: 1,
-        padding: 20,
-        backgroundColor: '#f2f2f2'
+        flex:1,
+        backgroundColor:'#f2f2f2'
       }}
     >
 
-      <Text
-        style={{
-          fontSize: 28,
-          fontWeight: 'bold',
-          marginBottom: 10
+      <ScrollView
+        contentContainerStyle={{
+          padding:20
         }}
       >
-        Eventos Comunitarios
-      </Text>
 
-      <Text
-        style={{
-          marginBottom: 25,
-          color: 'gray'
-        }}
-      >
-        Bienvenido: {auth.currentUser?.email}
-      </Text>
-
-      <TouchableOpacity
-        style={{
-          backgroundColor: 'white',
-          padding: 20,
-          borderRadius: 12,
-          marginBottom: 15
-        }}
-      >
         <Text
           style={{
-            fontSize: 18,
-            fontWeight: 'bold'
+            fontSize:28,
+            fontWeight:'bold',
+            marginBottom:5,
+            textAlign:'center'
           }}
         >
-          Festival Local
+          Eventos Comunitarios
         </Text>
 
-        <Text>10 Mayo - Parque Central</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={{
-          backgroundColor: '#4a90e2',
-          padding: 15,
-          borderRadius: 10,
-          alignItems: 'center',
-          marginBottom: 15
-        }}
-        onPress={() => navigation.navigate('CreateEvent')}
-      >
         <Text
           style={{
-            color: 'white',
-            fontWeight: 'bold'
+            marginBottom:20,
+            color:'gray',
+            textAlign:'center'
           }}
         >
-          Crear Evento
+          Bienvenido: {currentUser?.email}
         </Text>
-      </TouchableOpacity>
 
-      <TouchableOpacity
-        style={{
-          backgroundColor: '#e74c3c',
-          padding: 15,
-          borderRadius: 10,
-          alignItems: 'center'
-        }}
-        onPress={handleLogout}
-      >
-        <Text
+        <TextInput
+          placeholder="🔍 Buscar eventos..."
+          value={search}
+          onChangeText={setSearch}
           style={{
-            color: 'white',
-            fontWeight: 'bold'
+            backgroundColor:'white',
+            padding:12,
+            borderRadius:10,
+            marginBottom:20
           }}
+        />
+
+        <TouchableOpacity
+          style={{
+            backgroundColor:'#4a90e2',
+            padding:15,
+            borderRadius:10,
+            alignItems:'center',
+            marginBottom:20
+          }}
+          onPress={() =>
+            navigation.navigate(
+              'CreateEvent'
+            )
+          }
         >
-          Cerrar Sesión
-        </Text>
-      </TouchableOpacity>
+          <Text
+            style={{
+              color:'white',
+              fontWeight:'bold'
+            }}
+          >
+            + Crear Evento
+          </Text>
+        </TouchableOpacity>
+
+        {loading ? (
+
+          <ActivityIndicator
+            size="large"
+          />
+
+        ) : filtered.length === 0 ? (
+
+          <Text
+            style={{
+              textAlign:'center'
+            }}
+          >
+            No hay eventos
+          </Text>
+
+        ) : (
+
+          filtered.map((event) => (
+
+            <View
+              key={event.id}
+              style={{
+                backgroundColor:'white',
+                padding:20,
+                borderRadius:12,
+                marginBottom:15
+              }}
+            >
+
+              <Text
+                style={{
+                  fontWeight:'bold',
+                  fontSize:18
+                }}
+              >
+                {event.title}
+              </Text>
+
+              <Text>
+                📅 {event.date}
+              </Text>
+
+              <Text>
+                📍 {event.location}
+              </Text>
+
+              <TouchableOpacity
+                onPress={() =>
+                  navigation.navigate(
+                    'DetailEvent',
+                    {event}
+                  )
+                }
+              >
+                <Text
+                  style={{
+                    color:'#4a90e2'
+                  }}
+                >
+                  Ver detalles →
+                </Text>
+              </TouchableOpacity>
+
+            </View>
+
+          ))
+
+        )}
+
+        <TouchableOpacity
+          style={{
+            backgroundColor:'#e74c3c',
+            padding:15,
+            borderRadius:10,
+            alignItems:'center',
+            marginTop:10,
+            marginBottom:20
+          }}
+          onPress={handleLogout}
+        >
+          <Text
+            style={{
+              color:'white',
+              fontWeight:'bold'
+            }}
+          >
+            Cerrar Sesión
+          </Text>
+
+        </TouchableOpacity>
+
+      </ScrollView>
+
+      <BottomNavigation
+        navigation={navigation}
+      />
 
     </View>
-
   );
 }
